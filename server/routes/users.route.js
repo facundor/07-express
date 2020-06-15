@@ -10,15 +10,20 @@ app.get('/users', function (req, res) {
   let limit = req.query.limit || 5;
   
 
-  User.find({})
+  User.find({status: true}, 'name email status google role')
       .skip(Number(from))
       .limit(Number(limit))
       .exec((err, users) => {
         if( err ){
           return res.status(500).json({ ok: false, msg: err });
         }
-    
-        res.json(users);
+
+        User.count({status: true}, (err, userCount) => {
+          res.json({ok: true,
+            users,
+            count: userCount
+          });
+        })
         
     })
   
@@ -69,7 +74,20 @@ app.patch('/users/:id', function (req, res) {
 
 app.delete('/users/:id', function (req, res) {
   let id = req.params.id;
-  res.send('deleteUsuario');
+  User.findByIdAndUpdate(id, {status: false},  { new: true, runValidators: true}, (err, userUpdated) => {
+    if(err){
+      return res.status(500).json({ ok: false, msg: err });
+    }
+
+    if( userUpdated === null){
+      return res.status(400).json({ ok: false, msg: `User with id ${id} don't exist`  });
+    }
+
+    res.json({ok: true,
+      user: userUpdated
+    });
+  
+  })
 });
 
 module.exports = app;

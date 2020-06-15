@@ -5,7 +5,23 @@ const _ = require('underscore')
 const User = require('../models/user.model.js')
 
 app.get('/users', function (req, res) {
-  res.send('getUsuario');
+
+  let from = req.query.from || 0;
+  let limit = req.query.limit || 5;
+  
+
+  User.find({})
+      .skip(Number(from))
+      .limit(Number(limit))
+      .exec((err, users) => {
+        if( err ){
+          return res.status(500).json({ ok: false, msg: err });
+        }
+    
+        res.json(users);
+        
+    })
+  
 });
 
 app.post('/users', function (req, res) {
@@ -21,15 +37,11 @@ app.post('/users', function (req, res) {
  user.save( (err, userDB) => {
 
     if( err ){
-      res.status(500).json({ ok: false, msg: err });
-    }else{
-
-      res.json({
-        ok: true,
-        user: userDB
-      });
+      return res.status(500).json({ ok: false, msg: err });
     }
 
+    res.json(userDB);
+    
   })
  
 });
@@ -41,18 +53,13 @@ app.put('/users/:id', function (req, res) {
   User.findByIdAndUpdate(id, body, { new: true, runValidators: true}, (err, userDB) => {
    
     if( err ){
-      res.status(500).json({ ok: false, msg: err });
-    }else{
-
-      res.json({
-        ok: true,
-        user: userDB
-      });
+      return res.status(500).json({ ok: false, msg: err });
     }
+
+    res.json(userDB);
 
   })
 
-  
 });
 
 app.patch('/users/:id', function (req, res) {

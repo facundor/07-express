@@ -1,5 +1,7 @@
 const express = require('express');
 const app = express();
+const bcrypt = require('bcrypt')
+const _ = require('underscore')
 const User = require('../models/user.model.js')
 
 app.get('/users', function (req, res) {
@@ -9,16 +11,10 @@ app.get('/users', function (req, res) {
 app.post('/users', function (req, res) {
   let body = req.body;
 
-  /*if (body.name === undefined) {
-    res.status(400).json({ ok: false, msg: 'Username is required' });
-  }*/
-
-  console.log('body:', body)
-
   let user = new User({
     name: body.name,
     email: body.email,
-    password: body.password,
+    password: bcrypt.hashSync(body.password, 10),
     role: body.role
   })
 
@@ -27,9 +23,10 @@ app.post('/users', function (req, res) {
     if( err ){
       res.status(500).json({ ok: false, msg: err });
     }else{
+
       res.json({
         ok: true,
-        user: user
+        user: userDB
       });
     }
 
@@ -39,9 +36,23 @@ app.post('/users', function (req, res) {
 
 app.put('/users/:id', function (req, res) {
   let id = req.params.id;
-  res.json({
-    id,
-  });
+  let body = _.pick(req.body,['name', 'email', 'img', 'role', 'status'])
+
+  User.findByIdAndUpdate(id, body, { new: true, runValidators: true}, (err, userDB) => {
+   
+    if( err ){
+      res.status(500).json({ ok: false, msg: err });
+    }else{
+
+      res.json({
+        ok: true,
+        user: userDB
+      });
+    }
+
+  })
+
+  
 });
 
 app.patch('/users/:id', function (req, res) {

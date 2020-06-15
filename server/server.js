@@ -13,9 +13,10 @@ app.use(bodyParser.json());
 app.use( require('./routes/users.route.js'))
 
 mongoose.connect(
-  'mongodb://localhost:27017/cafe',
+  process.env.DATABASE_URL,
   {
     useNewUrlParser: true,
+    useCreateIndex: true,
     useUnifiedTopology: true,
   },
   (err, res) => {
